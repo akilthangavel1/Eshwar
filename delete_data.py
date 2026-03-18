@@ -1,27 +1,36 @@
-from bson import ObjectId
-from pymongo import MongoClient
+from __future__ import annotations
+
+from mongo_job_common import get_collection, normalize_status, object_id_from_input
 
 
 def main() -> None:
-    client = MongoClient("mongodb://localhost:27017/")
-    db = client["sample_db"]
-    collection = db["sample_collection"]
+    collection = get_collection()
 
-    mode = input("Delete by (id/name) [id]: ").strip().lower()
-    if mode == "name":
-        name = input("Enter name to delete: ").strip()
-        if not name:
-            raise ValueError("Name cannot be empty")
-        result = collection.delete_many({"name": name})
+    mode = input("Delete by (id/owner/status) [id]: ").strip().lower() or "id"
+    if mode == "owner":
+        owner = input("Enter owner: ").strip()
+        if not owner:
+            raise ValueError("Owner cannot be empty")
+        confirm = input("This deletes multiple jobs. Type YES to confirm: ").strip()
+        if confirm != "YES":
+            print("Cancelled")
+            return
+        result = collection.delete_many({"owner": owner})
         print(f"Deleted: {result.deleted_count}")
         return
 
-    doc_id_raw = input("Enter document _id to delete: ").strip()
-    if not ObjectId.is_valid(doc_id_raw):
-        raise ValueError("Invalid _id")
-    doc_id = ObjectId(doc_id_raw)
+    if mode == "status":
+        status = normalize_status(input("Enter status: ").strip())
+        confirm = input("This deletes multiple jobs. Type YES to confirm: ").strip()
+        if confirm != "YES":
+            print("Cancelled")
+            return
+        result = collection.delete_many({"status": status})
+        print(f"Deleted: {result.deleted_count}")
+        return
 
-    result = collection.delete_one({"_id": doc_id})
+    job_id = object_id_from_input(input("Enter job _id to delete: "))
+    result = collection.delete_one({"_id": job_id})
     print(f"Deleted: {result.deleted_count}")
 
 

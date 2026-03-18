@@ -1,28 +1,17 @@
-from pymongo import MongoClient
+from mongo_job_common import create_job_doc, get_collection, parse_priority, parse_tags
 
 
 def main() -> None:
-    client = MongoClient("mongodb://localhost:27017/")
-    db = client["sample_db"]
-    collection = db["sample_collection"]
+    collection = get_collection()
 
-    name = input("Enter name: ").strip()
-    if not name:
-        raise ValueError("Name cannot be empty")
+    title = input("Enter job title: ").strip()
+    owner = input("Enter owner: ").strip()
+    priority = parse_priority(input("Enter priority [0]: "))
+    tags = parse_tags(input("Enter tags (comma-separated) []: "))
 
-    age_raw = input("Enter age: ").strip()
-    if not age_raw.isdigit():
-        raise ValueError("Age must be a number")
-    age = int(age_raw)
-    if age <= 0:
-        raise ValueError("Age must be greater than 0")
-
-    city = input("Enter city: ").strip()
-    if not city:
-        raise ValueError("City cannot be empty")
-
-    result = collection.insert_one({"name": name, "age": age, "city": city})
-    print(f"Inserted document id: {result.inserted_id}")
+    job = create_job_doc(title=title, owner=owner, priority=priority, tags=tags)
+    result = collection.insert_one(job)
+    print(f"Created job id: {result.inserted_id}")
 
 
 if __name__ == "__main__":
