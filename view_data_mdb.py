@@ -12,7 +12,11 @@ def main() -> None:
         return
 
     for doc in documents:
-        print(doc)
+        doc_id = str(doc.get("_id", ""))
+        name = doc.get("name", "")
+        age = doc.get("age", "")
+        city = doc.get("city", "")
+        print(f"_id={doc_id} | name={name} | age={age} | city={city}")
 
 
 if __name__ == "__main__":
